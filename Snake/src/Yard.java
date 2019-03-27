@@ -1,4 +1,5 @@
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.Image;
@@ -8,12 +9,19 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
 public class Yard extends Frame {
+	
+	PaintThread paintThread = new PaintThread();
+	private boolean gameOver = false;
 
 	public static final int ROWS = 50;
 	public static final int COLS = 50;
 	public static final int BLOCK_SIZE = 10;
 	
-	Snake s = new Snake();
+	private Font fontGameOver = new Font("TimesRoman", Font.PLAIN, 37);
+	
+	private int sorce = 0;
+	
+	Snake s = new Snake(this);
 	Egg e = new Egg();
 	
 	Image offScreenImage = null;
@@ -31,13 +39,16 @@ public class Yard extends Frame {
 		this.setVisible(true);
 		this.addKeyListener(new KeyMonitor());
 		
-		new Thread(new PaintThreal()).start();
+		new Thread(paintThread).start();
 	}
 
 	
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
 		new Yard().launch();
+	}
+	
+	public void stop() {
+		gameOver = true;
 	}
 	
 	@Override
@@ -47,21 +58,23 @@ public class Yard extends Frame {
 		arg0.fillRect(0, 0, COLS * BLOCK_SIZE, ROWS * BLOCK_SIZE);
 		
 		arg0.setColor(Color.black);
-		// drow out row lines
-		for (int i = 1; i < ROWS; ++i) {
-			arg0.drawLine(0, BLOCK_SIZE * i, COLS*BLOCK_SIZE, BLOCK_SIZE * i);
-		}
-
-		// drow out col lines
-		for (int i = 1; i < COLS; ++i) {
-			arg0.drawLine(BLOCK_SIZE * i, 0, BLOCK_SIZE * i, ROWS * BLOCK_SIZE);
-		}
+		
+		arg0.setColor(Color.pink);
+		arg0.drawString("Sorce: " + sorce, 10, 60);
 		
 		arg0.setColor(c);
 		
 		s.eat(e);
 		e.draw(arg0);
 		s.draw(arg0);
+		
+		if (gameOver) {
+			arg0.setColor(Color.black);
+			arg0.setFont(fontGameOver);
+			arg0.drawString("Game over!", 150, 230);
+			paintThread.gameOver();
+		}
+		
 	}
 	
 	@Override
@@ -74,17 +87,30 @@ public class Yard extends Frame {
 		g.drawImage(offScreenImage, 0, 0, null);
 	}
 	
-	private class PaintThreal implements Runnable {
+	public int getSorce() {
+		return sorce;
+	}
+
+
+	public void setSorce(int sorce) {
+		this.sorce = sorce;
+	}
+
+	private class PaintThread implements Runnable {
+		private boolean running = true;
 		public void run() {
-			while(true) {
+			while(running) {
 				repaint();
 				try {
 					Thread.sleep(100);
 				} catch (InterruptedException e) {
-					// TODO: handle exception
 					e.printStackTrace();
 				}
 			}
+		}
+		
+		public void gameOver() {
+			running = false;
 		}
 	}
 	
@@ -92,7 +118,6 @@ public class Yard extends Frame {
 
 		@Override
 		public void keyPressed(KeyEvent e) {
-			// TODO Auto-generated method stub
 			s.keyPressed(e);
 		}
 		

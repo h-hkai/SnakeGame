@@ -10,6 +10,7 @@ public class Snake {
 	private int size = 0;
 	
 	private Node n = new Node(20, 30, Dir.L);
+	private Yard y;
 	
 	public Snake(Node node) {
 		head = node;
@@ -17,10 +18,11 @@ public class Snake {
 		size = 1;
 	}
 	
-	public Snake() {
+	public Snake(Yard y) {
 		head = n;
 		tail = n;
 		size = 1;
+		this.y = y;
 	}
 	
 	public void addToHead() {
@@ -86,6 +88,7 @@ public class Snake {
 				n.draw(g);
 			}
 		}
+		
 	}
 	
 	private void move() {	
@@ -95,8 +98,14 @@ public class Snake {
 	}
 	
 	private void checkDead() {
-		if (head.row < 0 || head.col < 3 || head.row > Yard.ROWS || head.col > Yard.COLS) {
-			
+		if (head.row < 3 || head.col < 0 || head.row > Yard.ROWS || head.col > Yard.COLS) {
+			y.stop();
+		}
+		
+		for (Node n = head.next; n != null; n = n.next) {
+			if (head.row == n.row && head.col == n.col) {
+				y.stop();
+			}
 		}
 			
 	}
@@ -134,6 +143,7 @@ public class Snake {
 		if (this.getRect().intersects(e.getRect())) {
 			e.reAppear();
 			this.addToHead();
+			y.setSorce(y.getSorce() + 5);
 		}
 	}
 	
